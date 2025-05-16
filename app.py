@@ -104,4 +104,4 @@ def post():
 if __name__ == '__main__':
     links = load_links()
     logging.debug(links.items())
-    app.run(debug=True)
+    app.run()
