@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="dark">
+    <title>SHRT</title>
+    <meta name="description" content="Simple custom python flask app to shorten URIs">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2.1.1/css/pico.min.css">
+  </head>
+
+  <body>
+    <header class="container">
+      <hgroup>
+        <h1><i>SHRT.</i></h1>
+        <p>Simple Hosted Redirect Thing</p>
+      </hgroup>
+    </header>
+
+    <main class="container">
+      <section id="form">
+        <fieldset role="group">
+            <input id="uri" name="uri" placeholder="https://...">
+            <button onclick="shorten()" type="submit"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e3e3e3"><path d="M160-400v-80h640v80H160Zm0-120v-80h640v80H160ZM440-80v-128l-64 64-56-56 160-160 160 160-56 56-64-62v126h-80Zm40-560L320-800l56-56 64 64v-128h80v128l64-64 56 56-160 160Z"/></svg></button>
+        </fieldset>
+        <fieldset role="group">
+            <input id="shrtlink" onclick="copy()" disabled name="Shrtlink" placeholder="shrtlink">
+            <button onclick="copy()" type="submit"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e3e3e3"><path d="M360-240q-33 0-56.5-23.5T280-320v-480q0-33 23.5-56.5T360-880h360q33 0 56.5 23.5T800-800v480q0 33-23.5 56.5T720-240H360Zm0-80h360v-480H360v480ZM200-80q-33 0-56.5-23.5T120-160v-560h80v560h440v80H200Zm160-240v-480 480Z"/></svg></button>
+        </fieldset>
+      </section>
+  </body>
+
+  <script>
+    const isValidUrl = urlString=> {
+          var urlPattern = new RegExp('^(https?:\\/\\/)?'+ // validate protocol
+        '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|'+ // validate domain name
+        '((\\d{1,3}\\.){3}\\d{1,3}))'+ // validate OR ip (v4) address
+        '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*'+ // validate port and path
+        '(\\?[;&a-z\\d%_.~+=-]*)?'+ // validate query string
+        '(\\#[-a-z\\d_]*)?$','i'); // validate fragment locator
+      return !!urlPattern.test(urlString);
+    }
+
+    async function shorten()
+    {
+        var uri = document.getElementById("uri").value;
+
+        document.getElementById("shrtlink").value = "";
+
+        if (isValidUrl(uri)) {
+            var response_data
+
+            document.getElementById("uri").setAttribute("aria-invalid", "false");
+            var response = await fetch(window.location.href, {method: 'POST', headers: {'Accept': 'application/json','Content-Type': 'application/json'}, body: `{"uri": "` + uri + `"}`})
+            .then(response => response.json())
+            .then(data => {
+                response_data = data
+            })
+            document.getElementById("shrtlink").value = response_data
+        }
+        else {
+            document.getElementById("uri").setAttribute("aria-invalid", "true");
+        }
+    }
+
+    function copy() {
+        var copyText = document.getElementById("shrtlink");
+
+        copyText.select();
+        copyText.setSelectionRange(0, 99999);
+
+        navigator.clipboard.writeText(copyText.value);
+    }
+  </script>
+</html>
