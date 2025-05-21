@@ -21,6 +21,7 @@
       <section id="form">
         <fieldset role="group">
             <input id="uri" name="uri" placeholder="https://...">
+            <input id="shortcode" name="shortcode" placeholder="Optional custom shortcode">
             <button onclick="shorten()" type="submit"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e3e3e3"><path d="M160-400v-80h640v80H160Zm0-120v-80h640v80H160ZM440-80v-128l-64 64-56-56 160-160 160 160-56 56-64-62v126h-80Zm40-560L320-800l56-56 64 64v-128h80v128l64-64 56 56-160 160Z"/></svg></button>
         </fieldset>
         <fieldset role="group">
@@ -44,6 +45,7 @@
     async function shorten()
     {
         var uri = document.getElementById("uri").value;
+        var shortcode = document.getElementById("shortcode").value;
 
         document.getElementById("shrtlink").value = "";
 
@@ -51,7 +53,13 @@
             var response_data
 
             document.getElementById("uri").setAttribute("aria-invalid", "false");
-            var response = await fetch(window.location.href, {method: 'POST', headers: {'Accept': 'application/json','Content-Type': 'application/json'}, body: `{"uri": "` + uri + `"}`})
+            document.getElementById("shortcode").setAttribute("aria-invalid", "false");
+
+            var response = await fetch(window.location.href,
+            {method: 'POST',
+            headers: {'Accept': 'application/json','Content-Type': 'application/json'},
+            body: `{"uri": "` + uri + `", "shortcode": "` + shortcode + `"}`})
+
             .then(response => response.json())
             .then(data => {
                 response_data = data

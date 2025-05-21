@@ -68,12 +68,25 @@ def get(shortcode = None):
 def post():
     """Post new URI data
     """
-    uri = request.get_json()["uri"]
+    json = request.get_json()
+    uri = json["uri"]
+    shortcode = json["shortcode"]
 
     # Return error if user does not pass a URI
     if uri is None:
         logging.info("uri parameter not passed.")
         return Response(str("uri parameter not passed."), status=400)
+
+    # If user defined shortcode exists, return error
+    if shortcode in links:
+        logging.info("shortlink parameter already in use.")
+        return Response(str("shortlink parameter already in use."), status=400)
+    elif shortcode is not None:
+        # Save the shortcode to the 'database'
+        logging.info("New shortcode saved.")
+        save_link(shortcode, uri)
+        # Return the constructed shortlink
+        return jsonify(request.root_url + shortcode)
     
     # If uri has already been shortlinked, return the constructed shortlink for it
     try:
