@@ -12,4 +12,4 @@ Simple Hosted Redirect Thing
 
 **Client:** HTML5, CSS, Javascript
 
-**Server:** Python 3.11, Flask
+**Server:** Python 3.12, Flask
