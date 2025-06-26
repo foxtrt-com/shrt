@@ -1,19 +1,15 @@
-# app.py
+# home.py
 import logging
 import pickle
 import os
 import random
 import string
 
-from flask import Flask, request, Response, redirect, render_template, jsonify
+from flask import Blueprint, request, Response, redirect, render_template, jsonify, current_app
 
-# Create Flask app
-app = Flask(__name__)
+bp = Blueprint('home', __name__)
 
-# Configure logging
-logging.basicConfig(level=logging.DEBUG)
-
-def load_links(filename = 'links.pkl'):
+def load_links(filename = None):
     """Loads the links dict from the 'database'
 
     Args:
@@ -22,6 +18,9 @@ def load_links(filename = 'links.pkl'):
     Returns:
         dict: Shortcodes and URIs
     """
+    if filename == None:
+        filename = os.path.join(current_app.instance_path, 'links.pkl')
+
     # If the 'database' exists, load the data
     if os.path.exists(filename):
         with open(filename, 'rb') as file:
@@ -31,7 +30,7 @@ def load_links(filename = 'links.pkl'):
         # Otherwise return an empty dict
         return {}
 
-def save_link(shortcode, uri, filename = 'links.pkl'):
+def save_link(shortcode, uri, filename = None):
     """saves the links dict from the 'database'
 
     Args:
@@ -39,13 +38,18 @@ def save_link(shortcode, uri, filename = 'links.pkl'):
         uri (str): URI to link to
         filename (str, optional): Optional filename. Defaults to 'links.pkl'.
     """
+    if filename == None:
+        filename = os.path.join(current_app.instance_path, 'links.pkl')
+
+    links = load_links()
+    
     links[shortcode] = uri
 
     with open(filename, 'wb') as file:
         pickle.dump(links, file)
 
-@app.route('/<shortcode>', defaults={'shortcode': None}, methods=['GET'])
-@app.route('/', methods=['GET'])
+@bp.route('/<shortcode>', defaults={'shortcode': None}, methods=['GET'])
+@bp.route('/', methods=['GET'])
 def get(shortcode = None):
     """Get homepage or redirect to shortlink URI
 
@@ -55,6 +59,7 @@ def get(shortcode = None):
         object: Either the index.html page, or a redirect code to the corresponding URI.
     """
     shortcode = request.url.strip(request.root_url)
+    links = load_links()
 
     # If the shortcode exists, redirect to the URI
     if shortcode is not None and shortcode in links:
@@ -64,13 +69,14 @@ def get(shortcode = None):
     # Otherwise return the index page
     return render_template('index.html')
 
-@app.route('/', methods=['POST'])
+@bp.route('/', methods=['POST'])
 def post():
     """Post new URI data
     """
     json = request.get_json()
     uri = json["uri"]
     shortcode = json["shortcode"]
+    links = load_links()
 
     # Return error if user does not pass a URI
     if uri is None:
@@ -113,8 +119,3 @@ def post():
     save_link(shortcode, uri)
     # Return the constructed shortlink
     return jsonify(request.root_url + shortcode)
-
-if __name__ == '__main__':
-    links = load_links()
-    logging.debug(links.items())
-    app.run()
