@@ -87,7 +87,7 @@ def post():
     if shortcode in links:
         logging.info("shortlink parameter already in use.")
         return Response(str("shortlink parameter already in use."), status=400)
-    elif shortcode is not None:
+    elif shortcode is not None or shortcode != '':
         # Save the shortcode to the 'database'
         logging.info("New shortcode saved.")
         save_link(shortcode, uri)
